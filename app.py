@@ -1,66 +1,79 @@
-from flask import Flask, jsonify
 import requests
-import os
+import json
 
-# Crée l'application Flask
-app = Flask(__name__)
-
+# Paramètres pour la connexion à l'API d'École Directe
 USER_ID = "MXTwisT"
 PASSWORD = "A0B1323D9871."
-ED_API_URL = "https://api.ecoledirecte.com/v3/login.awp"
-HOMEWORK_API_URL = "https://api.ecoledirecte.com/v3/eleves/{id_eleve}/cahierdetexte.awp?verbe=get"
+ED_API_URL = "https://api.ecoledirecte.com/v3/login.awp"  # Remplace par l'URL correcte
 
+# Fonction pour obtenir un token de session
 def get_token():
     payload = {
         "identifiant": USER_ID,
         "motdepasse": PASSWORD
     }
+
+    # Envoi de la requête POST pour obtenir le token
     response = requests.post(ED_API_URL, json=payload)
 
-    print("Réponse de l'API (Token):", response.text)
-    
+    # Affiche la réponse brute pour débogage
+    print("Réponse brute de l'API (Token):", response.text)
+
+    try:
+        # Tentative de parsing du JSON
+        data = response.json()
+    except ValueError:
+        raise Exception("La réponse de l'API n'est pas un JSON valide.")
+
+    # Vérification de la réussite de l'authentification
     if response.status_code == 200:
-        try:
-            data = response.json()
-            if data.get("code") == 200:
-                return data["data"]["token"]
-            else:
-                raise Exception("Erreur d'authentification : " + data.get("message", "Inconnu"))
-        except ValueError:
-            raise Exception("La réponse de l'API n'est pas un JSON valide.")
+        if data.get("code") == 200:
+            return data["data"]["token"]
+        else:
+            raise Exception("Erreur d'authentification : " + data.get("message", "Inconnu"))
     else:
         raise Exception(f"Erreur de connexion à l'API École Directe: {response.status_code}")
 
-def get_homeworks(token):
-    homework_url = HOMEWORK_API_URL.format(id_eleve="ton_id_eleve")
-    headers = {"x-token": token}
-    response = requests.get(homework_url, headers=headers)
+# Fonction pour récupérer les devoirs depuis le cahier de texte
+def get_homework():
+    # Obtenir le token d'authentification
+    token = get_token()
 
-    print("Réponse de l'API (Devoirs):", response.text)
-    
-    if response.status_code == 200:
-        try:
-            data = response.json()
-            if data.get("code") == 200:
-                return data["data"]
-            else:
-                raise Exception("Erreur lors de la récupération des devoirs : " + data.get("message", "Inconnu"))
-        except ValueError:
-            raise Exception("La réponse de l'API n'est pas un JSON valide.")
-    else:
-        raise Exception(f"Erreur de connexion pour récupérer les devoirs: {response.status_code}")
+    # URL pour récupérer les devoirs
+    homeworks_url = "https://api.ecoledirecte.com/v3/eleves/cahierDeTextes.awp"
+    params = {
+        "token": token
+    }
 
-# Définir la route pour obtenir les devoirs
-@app.route("/devoirs", methods=["GET"])
-def devoirs():
+    # Envoi de la requête pour obtenir les devoirs
+    response = requests.get(homeworks_url, params=params)
+
+    # Affiche la réponse brute pour débogage
+    print("Réponse brute de l'API (Devoirs):", response.text)
+
     try:
-        token = get_token()
-        devoirs = get_homeworks(token)
-        return jsonify(devoirs), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Tentative de parsing du JSON
+        data = response.json()
+    except ValueError:
+        raise Exception("La réponse de l'API n'est pas un JSON valide.")
 
-# Lancer l'application Flask
+    # Vérification de la réussite de la récupération des devoirs
+    if response.status_code == 200:
+        if data.get("code") == 200:
+            devoirs = data.get("data", {}).get("devoirs", [])
+            if devoirs:
+                return devoirs
+            else:
+                raise Exception("Aucun devoir trouvé.")
+        else:
+            raise Exception("Erreur lors de la récupération des devoirs : " + data.get("message", "Inconnu"))
+    else:
+        raise Exception(f"Erreur de connexion à l'API École Directe: {response.status_code}")
+
+# Fonction principale
 if __name__ == "__main__":
-    app.run(debug=True)
-
+    try:
+        devoirs = get_homework()
+        print("Devoirs récupérés :", devoirs)
+    except Exception as e:
+        print("Erreur:", e)
