@@ -1,9 +1,12 @@
+from flask import Flask, jsonify
 import requests
 import os
 
+# Crée l'application Flask
+app = Flask(__name__)
+
 USER_ID = os.getenv("USER_ID")
 PASSWORD = os.getenv("PASSWORD")
-
 ED_API_URL = "https://api.ecoledirecte.com/v3/login.awp"
 HOMEWORK_API_URL = "https://api.ecoledirecte.com/v3/eleves/{id_eleve}/cahierdetexte.awp?verbe=get"
 
@@ -47,6 +50,7 @@ def get_homeworks(token):
     else:
         raise Exception(f"Erreur de connexion pour récupérer les devoirs: {response.status_code}")
 
+# Définir la route pour obtenir les devoirs
 @app.route("/devoirs", methods=["GET"])
 def devoirs():
     try:
@@ -55,3 +59,8 @@ def devoirs():
         return jsonify(devoirs), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Lancer l'application Flask
+if __name__ == "__main__":
+    app.run(debug=True)
+
