@@ -5,8 +5,8 @@ import os
 # Crée l'application Flask
 app = Flask(__name__)
 
-USER_ID = os.getenv("USER_ID")
-PASSWORD = os.getenv("PASSWORD")
+USER_ID = "MXTwisT"
+PASSWORD = "A0B1323D9871."
 ED_API_URL = "https://api.ecoledirecte.com/v3/login.awp"
 HOMEWORK_API_URL = "https://api.ecoledirecte.com/v3/eleves/{id_eleve}/cahierdetexte.awp?verbe=get"
 
