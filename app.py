@@ -4,8 +4,8 @@ import requests
 app = Flask(__name__)
 
 # Remplace ces valeurs par tes identifiants École Directe
-USER_ID = "ton_identifiant"
-PASSWORD = "ton_mot_de_passe"
+USER_ID = "MXTwisT"
+PASSWORD = "A0B1323D9871."
 
 # URL API École Directe
 ED_API_URL = "https://api.ecoledirecte.com/v3/login.awp"
