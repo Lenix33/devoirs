@@ -1,6 +1,6 @@
 import requests
 import json
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 
 # Paramètres pour la connexion à l'API d'École Directe
 USER_ID = "MXTwisT"
@@ -18,7 +18,11 @@ def get_token():
     }
 
     # Envoi de la requête POST pour obtenir le token
-    response = requests.post(ED_API_URL, json=payload)
+    headers = {
+        "Content-Type": "application/json"  # Assurer que le format est JSON
+    }
+
+    response = requests.post(ED_API_URL, json=payload, headers=headers)
 
     # Affiche la réponse brute pour débogage
     print("Réponse brute de l'API (Token):", response.text)
