@@ -1,10 +1,14 @@
 import requests
 import json
+from flask import Flask, jsonify, request
 
 # Paramètres pour la connexion à l'API d'École Directe
 USER_ID = "MXTwisT"
 PASSWORD = "A0B1323D9871."
 ED_API_URL = "https://api.ecoledirecte.com/v3/login.awp"  # Remplace par l'URL correcte
+
+# Initialisation de l'application Flask
+app = Flask(__name__)
 
 # Fonction pour obtenir un token de session
 def get_token():
@@ -70,10 +74,20 @@ def get_homework():
     else:
         raise Exception(f"Erreur de connexion à l'API École Directe: {response.status_code}")
 
-# Fonction principale
-if __name__ == "__main__":
+# Route Flask pour afficher les devoirs
+@app.route('/devoirs', methods=['GET'])
+def devoirs():
     try:
-        devoirs = get_homework()
-        print("Devoirs récupérés :", devoirs)
+        devoirs_data = get_homework()
+        return jsonify(devoirs_data)
     except Exception as e:
-        print("Erreur:", e)
+        return jsonify({"error": str(e)}), 400
+
+# Route Flask pour l'accueil
+@app.route('/')
+def home():
+    return "Bienvenue sur l'API de Devoirs d'École Directe!"
+
+# Fonction principale pour démarrer l'application Flask
+if __name__ == "__main__":
+    app.run(debug=True)
